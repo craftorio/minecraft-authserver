@@ -1,7 +1,13 @@
 import bcrypt from 'https://esm.sh/bcryptjs@2.4.3?bundle';
 import { supabase } from '../lib/supabase.js';
 
-export async function authenticate(username, password, clientToken) {
+export interface Session {
+  accessToken: string;
+  clientToken: string;
+  accountId: number;
+}
+
+export async function authenticate(username: string, password: string, clientToken: string): Promise<Session | null> {
   if (!username || !password || !clientToken) {
     return null;
   }
@@ -17,7 +23,7 @@ export async function authenticate(username, password, clientToken) {
   if (!valid) {
     return null;
   }
-  const session = {
+  const session: Session = {
     accessToken: crypto.randomUUID(),
     clientToken,
     accountId: account.id
@@ -26,17 +32,17 @@ export async function authenticate(username, password, clientToken) {
   return session;
 }
 
-export async function refresh(accessToken, clientToken) {
+export async function refresh(accessToken: string, clientToken: string): Promise<Session | null> {
   if (!accessToken || !clientToken) {
     return null;
   }
-  const { data: sessionData, error } = await supabase
+  const { data: sessionData } = await supabase
     .from('sessions')
     .select('*')
     .eq('accessToken', accessToken)
     .eq('clientToken', clientToken)
     .maybeSingle();
-  if (error || !sessionData) {
+  if (!sessionData) {
     return null;
   }
   const { data: account } = await supabase
@@ -47,7 +53,7 @@ export async function refresh(accessToken, clientToken) {
   if (!account) {
     return null;
   }
-  const newSession = {
+  const newSession: Session = {
     accessToken: crypto.randomUUID(),
     clientToken,
     accountId: account.id
@@ -56,7 +62,7 @@ export async function refresh(accessToken, clientToken) {
   return newSession;
 }
 
-export async function joinServer(accessToken, selectedProfile, serverId) {
+export async function joinServer(accessToken: string, selectedProfile: string, serverId: string): Promise<boolean> {
   if (!accessToken || !selectedProfile || !serverId) {
     return false;
   }
@@ -86,7 +92,7 @@ export async function joinServer(accessToken, selectedProfile, serverId) {
   return true;
 }
 
-export async function hasJoined(serverId, username) {
+export async function hasJoined(serverId: string, username: string) {
   if (!serverId || !username) {
     return null;
   }
@@ -111,7 +117,7 @@ export async function hasJoined(serverId, username) {
   };
 }
 
-export async function getProfile(id) {
+export async function getProfile(id: string) {
   const { data: serverSession } = await supabase
     .from('server_sessions')
     .select('*')
@@ -132,23 +138,17 @@ export async function getProfile(id) {
   };
 }
 
-export async function getTexture(hash) {
-  const { data, error } = await supabase
-    .storage
-    .from('skins')
-    .download(`${hash}.png`);
-  if (error || !data) {
+export async function getTexture(hash: string) {
+  const { data } = await supabase.storage.from('skins').download(`${hash}.png`);
+  if (!data) {
     return null;
   }
   return data;
 }
 
-async function buildProperties(username, profileId, profileName) {
+async function buildProperties(username: string, profileId: string, profileName: string) {
   const encoder = new TextEncoder();
-  const digest = await crypto.subtle.digest(
-    'SHA-256',
-    encoder.encode(username)
-  );
+  const digest = await crypto.subtle.digest('SHA-256', encoder.encode(username));
   const hash = Array.from(new Uint8Array(digest))
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
@@ -163,11 +163,44 @@ async function buildProperties(username, profileId, profileName) {
     }
   };
   const value = btoa(JSON.stringify(textures));
+  const signature = await signValue(value, globalThis.TEXTURE_PRIVATE_KEY);
   return [
     {
       name: 'textures',
       value,
-      signature: ''
+      signature
     }
   ];
+}
+
+function pemToArrayBuffer(pem: string): ArrayBuffer {
+  const b64 = pem
+    .replace(/-----BEGIN[^-]+-----/, '')
+    .replace(/-----END[^-]+-----/, '')
+    .replace(/\s+/g, '');
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
+async function signValue(value: string, privatePem: string): Promise<string> {
+  if (!privatePem) {
+    return '';
+  }
+  const key = await crypto.subtle.importKey(
+    'pkcs8',
+    pemToArrayBuffer(privatePem),
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-1' },
+    false,
+    ['sign']
+  );
+  const signature = await crypto.subtle.sign(
+    'RSASSA-PKCS1-v1_5',
+    key,
+    new TextEncoder().encode(value)
+  );
+  return btoa(String.fromCharCode(...new Uint8Array(signature)));
 }

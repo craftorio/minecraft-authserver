@@ -1,0 +1,11 @@
+name = "minecraft-authserver"
+main = "dist/worker.js"
+compatibility_date = "2024-05-01"
+
+[build]
+command = "npm run build"
+
+[vars]
+SUPABASE_URL = ""
+SUPABASE_KEY = ""
+TEXTURE_PRIVATE_KEY = ""

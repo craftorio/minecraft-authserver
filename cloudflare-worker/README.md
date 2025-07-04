@@ -1,21 +1,20 @@
 # Cloudflare Worker Port
 
-This directory contains a partial JavaScript rewrite of the PHP authentication server.
-The worker is designed for [Cloudflare Workers](https://developers.cloudflare.com/workers/).
-Supabase is used as the backing database instead of MySQL or SleekDB.
+This directory contains a TypeScript rewrite of the PHP authentication server.
+It runs on [Cloudflare Workers](https://developers.cloudflare.com/workers/) and
+uses the [Hono](https://hono.dev) router. Supabase provides the backing
+database.
 
 ## Environment Variables
 - `SUPABASE_URL` – URL of your Supabase project
 - `SUPABASE_KEY` – Service or anon key used to access Supabase
+- `TEXTURE_PRIVATE_KEY` – PEM private key used to sign skin properties
 
 ## Routes
-The worker implements several routes that map to the original PHP API. Each
-handler is exported from a file in `routes/` and prefixed with `action`.
-Files mirror their route path using underscores. For example the handler for
-`/session/minecraft/join` lives in `session_minecraft_join.js` and exports
-`actionSessionMinecraftJoin`.
-The heavy authentication logic lives in `services/authenticator.js` and is
-shared across the handlers:
+Each route handler lives in `routes/` and is prefixed with `action`. File names
+mirror their path using underscores. For example, `/session/minecraft/join`
+corresponds to `session_minecraft_join.ts` exporting `actionSessionMinecraftJoin`.
+All handlers share the logic in `services/authenticator.ts`.
 
 - `GET /` – simple health check
 - `POST /authenticate` – validates credentials and creates a session
@@ -23,15 +22,16 @@ shared across the handlers:
 - `POST /session/minecraft/join` – records that a player joined a server
 - `GET /session/minecraft/hasJoined` – verifies a player has joined a server
 - `GET /session/minecraft/profile/<id>` – retrieves profile information
-- `GET /texture/<hash>` – retrieves the PNG skin with the given hash from Supabase storage
+- `GET /texture/<hash>` – retrieves the PNG skin with the given hash from
+  Supabase storage
 
 ## Running locally
-You can run the worker with [Wrangler](https://developers.cloudflare.com/workers/wrangler/):
+Use [Wrangler](https://developers.cloudflare.com/workers/wrangler/) to run the
+worker:
 
 ```bash
-wrangler dev src/worker.js
+wrangler dev dist/cloudflare-worker/worker.js
 ```
 
-Make sure to provide the required environment variables in your `wrangler.toml` or via your shell.
-
-This implementation is minimal and does not cover all features from the PHP code, but it demonstrates how the logic can be translated to a serverless environment.
+Ensure the required environment variables are provided via `wrangler.toml` or
+your shell.

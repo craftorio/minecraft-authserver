@@ -1,0 +1,17 @@
+import { Hono } from 'hono';
+import { actionHome } from './routes/home.js';
+import { actionAuthenticate } from './routes/authenticate.js';
+import { actionRefresh } from './routes/refresh.js';
+import { actionSessionMinecraftJoin } from './routes/session_minecraft_join.js';
+import { actionSessionMinecraftHasJoined } from './routes/session_minecraft_hasJoined.js';
+import { actionSessionMinecraftProfile } from './routes/session_minecraft_profile.js';
+import { actionTexture } from './routes/texture.js';
+const app = new Hono();
+app.get('/', (c) => actionHome(c));
+app.post('/authenticate', (c) => actionAuthenticate(c));
+app.post('/refresh', (c) => actionRefresh(c));
+app.post('/session/minecraft/join', (c) => actionSessionMinecraftJoin(c));
+app.get('/session/minecraft/hasJoined', (c) => actionSessionMinecraftHasJoined(c));
+app.get('/session/minecraft/profile/:id', (c) => actionSessionMinecraftProfile(c));
+app.get('/texture/:hash', (c) => actionTexture(c));
+export default app;
