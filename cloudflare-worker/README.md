@@ -10,7 +10,9 @@ Supabase is used as the backing database instead of MySQL or SleekDB.
 
 ## Routes
 The worker implements several routes that map to the original PHP API. Each
-handler is exported from a file in `routes/` and prefixed with `action`:
+handler is exported from a file in `routes/` and prefixed with `action`.
+The heavy authentication logic lives in `services/authenticator.js` and is
+shared across the handlers:
 
 - `GET /` – simple health check
 - `POST /authenticate` – validates credentials and creates a session

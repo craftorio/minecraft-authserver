@@ -1,11 +1,8 @@
-import { supabase } from '../lib/supabase.js';
+import { getTexture } from '../services/authenticator.js';
 
 export async function actionTexture(hash) {
-  const { data, error } = await supabase
-    .storage
-    .from('skins')
-    .download(`${hash}.png`);
-  if (error || !data) {
+  const data = await getTexture(hash);
+  if (!data) {
     return new Response('Not Found', { status: 404 });
   }
   return new Response(data, {
