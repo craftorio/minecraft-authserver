@@ -1,6 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = globalThis.SUPABASE_URL;
-const SUPABASE_KEY = globalThis.SUPABASE_KEY;
+export interface SupabaseEnv {
+  SUPABASE_URL: string;
+  SUPABASE_KEY: string;
+}
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+export function getSupabase(env: SupabaseEnv): SupabaseClient {
+  return createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
+}

@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
 import { refresh } from '../services/authenticator.js';
 
-const app = new Hono();
+const app = new Hono<{ Bindings: Bindings }>();
 
 app.post('/refresh', async (c) => {
   const { accessToken, clientToken } = await c.req.json();
-  const session = await refresh(accessToken, clientToken);
+  const session = await refresh(c.env, accessToken, clientToken);
   if (!session) {
     const message = !accessToken || !clientToken
       ? { error: 'InvalidRequestException', errorMessage: 'Bad Request.' }

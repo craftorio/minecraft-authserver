@@ -5,10 +5,13 @@ interface ImportMeta {
   glob(pattern: string, options: { eager: true }): Record<string, unknown>;
 }
 
+interface Bindings {
+  [key: string]: unknown;
+  SUPABASE_URL: string;
+  SUPABASE_KEY: string;
+  TEXTURE_PRIVATE_KEY: string;
+}
+
 interface Env {
-  Bindings: {
-    SUPABASE_URL: string;
-    SUPABASE_KEY: string;
-    TEXTURE_PRIVATE_KEY: string;
-  };
+  Bindings: Bindings;
 }

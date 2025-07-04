@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
 import { getTexture } from '../services/authenticator.js';
 
-const app = new Hono();
+const app = new Hono<{ Bindings: Bindings }>();
 
 app.get('/texture/:hash', async (c) => {
   const hash = c.req.param('hash');
-  const data = await getTexture(hash);
+  const data = await getTexture(c.env, hash);
   if (!data) {
     return new Response('Not Found', { status: 404 });
   }

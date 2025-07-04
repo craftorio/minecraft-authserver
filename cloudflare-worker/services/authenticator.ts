@@ -1,5 +1,7 @@
 import bcrypt from 'bcryptjs';
-import { supabase } from '../lib/supabase.js';
+import { getSupabase, SupabaseEnv } from '../lib/supabase.js';
+
+export interface WorkerEnv extends Bindings {}
 
 export interface Session {
   accessToken: string;
@@ -7,7 +9,8 @@ export interface Session {
   accountId: number;
 }
 
-export async function authenticate(username: string, password: string, clientToken: string): Promise<Session | null> {
+export async function authenticate(env: WorkerEnv, username: string, password: string, clientToken: string): Promise<Session | null> {
+  const supabase = getSupabase(env);
   if (!username || !password || !clientToken) {
     return null;
   }
@@ -32,7 +35,8 @@ export async function authenticate(username: string, password: string, clientTok
   return session;
 }
 
-export async function refresh(accessToken: string, clientToken: string): Promise<Session | null> {
+export async function refresh(env: WorkerEnv, accessToken: string, clientToken: string): Promise<Session | null> {
+  const supabase = getSupabase(env);
   if (!accessToken || !clientToken) {
     return null;
   }
@@ -62,7 +66,8 @@ export async function refresh(accessToken: string, clientToken: string): Promise
   return newSession;
 }
 
-export async function joinServer(accessToken: string, selectedProfile: string, serverId: string): Promise<boolean> {
+export async function joinServer(env: WorkerEnv, accessToken: string, selectedProfile: string, serverId: string): Promise<boolean> {
+  const supabase = getSupabase(env);
   if (!accessToken || !selectedProfile || !serverId) {
     return false;
   }
@@ -92,7 +97,8 @@ export async function joinServer(accessToken: string, selectedProfile: string, s
   return true;
 }
 
-export async function hasJoined(serverId: string, username: string) {
+export async function hasJoined(env: WorkerEnv, serverId: string, username: string) {
+  const supabase = getSupabase(env);
   if (!serverId || !username) {
     return null;
   }
@@ -108,7 +114,8 @@ export async function hasJoined(serverId: string, username: string) {
   const props = await buildProperties(
     serverSession.username,
     serverSession.selectedProfile,
-    serverSession.username
+    serverSession.username,
+    env
   );
   return {
     id: serverSession.selectedProfile,
@@ -117,7 +124,8 @@ export async function hasJoined(serverId: string, username: string) {
   };
 }
 
-export async function getProfile(id: string) {
+export async function getProfile(env: WorkerEnv, id: string) {
+  const supabase = getSupabase(env);
   const { data: serverSession } = await supabase
     .from('server_sessions')
     .select('*')
@@ -129,7 +137,8 @@ export async function getProfile(id: string) {
   const props = await buildProperties(
     serverSession.username,
     id,
-    serverSession.username
+    serverSession.username,
+    env
   );
   return {
     id,
@@ -138,7 +147,8 @@ export async function getProfile(id: string) {
   };
 }
 
-export async function getTexture(hash: string) {
+export async function getTexture(env: WorkerEnv, hash: string) {
+  const supabase = getSupabase(env);
   const { data } = await supabase.storage.from('skins').download(`${hash}.png`);
   if (!data) {
     return null;
@@ -146,7 +156,7 @@ export async function getTexture(hash: string) {
   return data;
 }
 
-async function buildProperties(username: string, profileId: string, profileName: string) {
+async function buildProperties(username: string, profileId: string, profileName: string, env: WorkerEnv) {
   const encoder = new TextEncoder();
   const digest = await crypto.subtle.digest('SHA-256', encoder.encode(username));
   const hash = Array.from(new Uint8Array(digest))
@@ -163,7 +173,7 @@ async function buildProperties(username: string, profileId: string, profileName:
     }
   };
   const value = btoa(JSON.stringify(textures));
-  const signature = await signValue(value, globalThis.TEXTURE_PRIVATE_KEY);
+  const signature = await signValue(value, env.TEXTURE_PRIVATE_KEY);
   return [
     {
       name: 'textures',
