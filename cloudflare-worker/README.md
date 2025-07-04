@@ -34,3 +34,9 @@ wrangler dev dist/cloudflare-worker/worker.js
 
 Ensure the required environment variables are provided via `wrangler.toml` or
 your shell.
+
+## Supabase setup
+Run `supabase init` to create a local project, then apply the migration from
+`../supabase/migrations/0001_initial.sql` to create the tables and storage
+bucket used by the worker. The default configuration in `../supabase/config.toml`
+sets local ports and a placeholder JWT secret.
