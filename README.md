@@ -2,6 +2,8 @@
 
 This repository contains a JavaScript implementation of a Minecraft authentication server designed for the Cloudflare Workers platform. The project uses the [Hono](https://hono.dev) router and stores data in Supabase.
 
+> **Prerequisite**: Wrangler 3 requires Node.js 20 or later. Ensure your local environment or Docker image provides a recent Node version.
+
 ## Environment Variables
 - `SUPABASE_URL` – URL of your Supabase project
 - `SUPABASE_KEY` – service or anon key used to access Supabase

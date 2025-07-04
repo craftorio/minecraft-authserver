@@ -11,5 +11,8 @@
   "dependencies": {
     "hono": "^3.8.0",
     "@supabase/supabase-js": "^2.39.2"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
