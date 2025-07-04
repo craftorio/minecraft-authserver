@@ -9,10 +9,11 @@ Supabase is used as the backing database instead of MySQL or SleekDB.
 - `SUPABASE_KEY` – Service or anon key used to access Supabase
 
 ## Routes
-The worker currently implements two routes that map to the original PHP API:
+The worker currently implements several routes that map to the original PHP API:
 
 - `POST /authenticate` – validates credentials and creates a session
 - `POST /refresh` – refreshes an existing session
+- `GET /texture/<hash>` – retrieves the PNG skin with the given hash from Supabase storage
 
 Other routes from the PHP version would need to be ported in a similar fashion.
 

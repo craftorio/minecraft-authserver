@@ -95,6 +95,19 @@ async function refresh(request) {
   });
 }
 
+async function texture(hash) {
+  const { data, error } = await supabase
+    .storage
+    .from('skins')
+    .download(`${hash}.png`);
+  if (error || !data) {
+    return new Response('Not Found', { status: 404 });
+  }
+  return new Response(data, {
+    headers: { 'Content-Type': 'image/png' }
+  });
+}
+
 export default {
   async fetch(request) {
     const url = new URL(request.url);
@@ -103,6 +116,10 @@ export default {
     }
     if (request.method === 'POST' && url.pathname === '/refresh') {
       return refresh(request);
+    }
+    if (request.method === 'GET' && url.pathname.startsWith('/texture/')) {
+      const hash = url.pathname.split('/').pop();
+      return texture(hash);
     }
     return new Response('Not Found', { status: 404 });
   }
