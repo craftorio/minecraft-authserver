@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  worker:
+    build: .
+    environment:
+      SUPABASE_URL: http://supabase:54321
+      SUPABASE_KEY: supabase_key
+      TEXTURE_PRIVATE_KEY: |
+        -----BEGIN PRIVATE KEY-----
+        YOUR_PRIVATE_KEY
+        -----END PRIVATE KEY-----
+    ports:
+      - "8787:8787"
+    depends_on:
+      - supabase
+  supabase:
+    image: supabase/postgres:15
+    environment:
+      POSTGRES_PASSWORD: supabase
+    ports:
+      - "54321:5432"
