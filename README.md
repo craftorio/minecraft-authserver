@@ -5,6 +5,7 @@ This repository contains a JavaScript implementation of a Minecraft authenticati
 > **Prerequisite**
 > - Node.js 20 or later for building the worker
 > - [Supabase CLI](https://supabase.com/docs/guides/cli) for managing the local database
+> - `wrangler` and `workerd` installed globally via `npm i -g wrangler workerd`
 
 ## Environment Variables
 - `SUPABASE_URL` – URL of your Supabase project
@@ -47,6 +48,17 @@ docker compose up --build
 
 ```bash
 supabase db reset
+
+With `wrangler` installed, you can also run the worker directly:
+
+```bash
+wrangler dev --local
+```
+
+Or test the standalone runtime:
+
+```bash
+workerd serve dist/worker.js --experimental
 ```
 
 ## Production build

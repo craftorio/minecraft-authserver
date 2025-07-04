@@ -12,6 +12,6 @@ RUN npm run build
 FROM node:20-alpine
 WORKDIR /app
 COPY --from=build /app /app
-RUN npm install -g wrangler
+RUN npm install -g wrangler workerd
 EXPOSE 8787
 CMD ["wrangler", "dev", "dist/worker.js", "--host", "0.0.0.0", "--port", "8787"]
