@@ -1,14 +1,17 @@
 project_id = "minecraft-authserver"
 
 [api]
-port = 54321
+# The Kong gateway exposed by docker-compose listens on port 8000.
+port = 8000
 
 [db]
-port = 54322
+# Connect through the Supavisor pooler exposed on port 5432.
+port = 5432
 major_version = 15
 
 [studio]
-port = 54323
+# Studio runs on port 3000 in the compose stack.
+port = 3000
 
 [auth]
 jwt_secret = "supabase_jwt_secret"

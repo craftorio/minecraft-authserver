@@ -38,7 +38,10 @@ Each file under `cloudflare-worker/routes/` exports a small Hono app. The main w
 docker compose up --build
 ```
 
-6. The Supabase CLI reads `supabase/config.toml` and connects to the database on `localhost` using the specified ports. Because the compose file exposes these ports, commands like `supabase db reset` work without extra configuration.
+6. The Supabase CLI reads `supabase/config.toml` and connects to the stack on
+   `localhost` using the ports defined there (API on **8000**, Postgres on
+   **5432**, Studio on **3000**). Because `docker compose` exposes these same
+   ports, commands like `supabase db reset` work without extra configuration.
 
 7. Apply the initial database schema after the containers are running:
 
