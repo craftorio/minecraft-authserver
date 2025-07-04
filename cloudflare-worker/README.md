@@ -9,7 +9,8 @@ Supabase is used as the backing database instead of MySQL or SleekDB.
 - `SUPABASE_KEY` – Service or anon key used to access Supabase
 
 ## Routes
-The worker implements several routes that map to the original PHP API:
+The worker implements several routes that map to the original PHP API. Each
+handler is exported from a file in `routes/` and prefixed with `action`:
 
 - `GET /` – simple health check
 - `POST /authenticate` – validates credentials and creates a session
