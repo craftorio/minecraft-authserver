@@ -11,12 +11,9 @@ database.
 - `TEXTURE_PRIVATE_KEY` – PEM private key used to sign skin properties
 
 ## Routes
-Each route handler lives in `routes/` and is prefixed with `action`. File names
-mirror their path using underscores. For example, `/session/minecraft/join`
-corresponds to `session_minecraft_join.ts` exporting `actionSessionMinecraftJoin`.
-All handlers share the logic in `services/authenticator.ts`.
-The worker loads these handlers automatically at startup using
-`import.meta.glob`.
+Each file under `routes/` exports a small Hono app. The main worker loads all of
+these modules automatically with `import.meta.glob` and mounts them at the root.
+Handlers share the logic in `services/authenticator.ts`.
 
 - `GET /` – simple health check
 - `POST /authenticate` – validates credentials and creates a session

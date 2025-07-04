@@ -1,5 +1,7 @@
-import type { Context } from 'hono';
+import { Hono } from 'hono';
 
-export function actionHome(c: Context) {
-  return c.json('null');
-}
+const app = new Hono();
+
+app.get('/', (c) => c.json('null'));
+
+export default app;

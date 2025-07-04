@@ -1,7 +1,9 @@
-import type { Context } from 'hono';
+import { Hono } from 'hono';
 import { refresh } from '../services/authenticator.js';
 
-export async function actionRefresh(c: Context) {
+const app = new Hono();
+
+app.post('/refresh', async (c) => {
   const { accessToken, clientToken } = await c.req.json();
   const session = await refresh(accessToken, clientToken);
   if (!session) {
@@ -11,4 +13,6 @@ export async function actionRefresh(c: Context) {
     return c.json(message, message.error === 'InvalidRequestException' ? 400 : 403);
   }
   return c.json(session);
-}
+});
+
+export default app;

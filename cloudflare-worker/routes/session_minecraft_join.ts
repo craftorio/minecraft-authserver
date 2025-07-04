@@ -1,7 +1,9 @@
-import type { Context } from 'hono';
+import { Hono } from 'hono';
 import { joinServer } from '../services/authenticator.js';
 
-export async function actionSessionMinecraftJoin(c: Context) {
+const app = new Hono();
+
+app.post('/session/minecraft/join', async (c) => {
   try {
     const { accessToken, selectedProfile, serverId } = await c.req.json();
     const success = await joinServer(accessToken, selectedProfile, serverId);
@@ -12,4 +14,6 @@ export async function actionSessionMinecraftJoin(c: Context) {
   } catch {
     return c.body(null, 500);
   }
-}
+});
+
+export default app;
