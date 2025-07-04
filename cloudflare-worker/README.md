@@ -9,13 +9,15 @@ Supabase is used as the backing database instead of MySQL or SleekDB.
 - `SUPABASE_KEY` – Service or anon key used to access Supabase
 
 ## Routes
-The worker currently implements several routes that map to the original PHP API:
+The worker implements several routes that map to the original PHP API:
 
+- `GET /` – simple health check
 - `POST /authenticate` – validates credentials and creates a session
 - `POST /refresh` – refreshes an existing session
+- `POST /session/minecraft/join` – records that a player joined a server
+- `GET /session/minecraft/hasJoined` – verifies a player has joined a server
+- `GET /session/minecraft/profile/<id>` – retrieves profile information
 - `GET /texture/<hash>` – retrieves the PNG skin with the given hash from Supabase storage
-
-Other routes from the PHP version would need to be ported in a similar fashion.
 
 ## Running locally
 You can run the worker with [Wrangler](https://developers.cloudflare.com/workers/wrangler/):

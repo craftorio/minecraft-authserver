@@ -6,6 +6,10 @@ const SUPABASE_URL = globalThis.SUPABASE_URL;
 const SUPABASE_KEY = globalThis.SUPABASE_KEY;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+function home() {
+  return new Response('null', { headers: { 'Content-Type': 'application/json' } });
+}
+
 async function authenticate(request) {
   const body = await request.json();
   const { username, password, clientToken } = body;
@@ -108,6 +112,79 @@ async function texture(hash) {
   });
 }
 
+async function joinServer(request) {
+  try {
+    const { accessToken, selectedProfile, serverId } = await request.json();
+    if (!accessToken || !selectedProfile || !serverId) {
+      return new Response(null, { status: 401 });
+    }
+    const { data: session } = await supabase
+      .from('sessions')
+      .select('*')
+      .eq('accessToken', accessToken)
+      .maybeSingle();
+    if (!session) {
+      return new Response(null, { status: 401 });
+    }
+    const { data: account } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', session.accountId)
+      .maybeSingle();
+    if (!account) {
+      return new Response(null, { status: 401 });
+    }
+    await supabase.from('server_sessions').upsert({
+      accessToken,
+      accountId: account.id,
+      username: account.username,
+      selectedProfile,
+      serverId
+    });
+    return new Response(null, { status: 204 });
+  } catch {
+    return new Response(null, { status: 500 });
+  }
+}
+
+async function hasJoined(url) {
+  const serverId = url.searchParams.get('serverId');
+  const username = url.searchParams.get('username');
+  if (!serverId || !username) {
+    return new Response(null, { status: 401 });
+  }
+  const { data: serverSession } = await supabase
+    .from('server_sessions')
+    .select('*')
+    .eq('serverId', serverId)
+    .eq('username', username)
+    .maybeSingle();
+  if (!serverSession) {
+    return new Response(null, { status: 401 });
+  }
+  return new Response(JSON.stringify({
+    id: serverSession.selectedProfile,
+    name: serverSession.username,
+    properties: []
+  }), { headers: { 'Content-Type': 'application/json' } });
+}
+
+async function profile(id) {
+  const { data: serverSession } = await supabase
+    .from('server_sessions')
+    .select('*')
+    .eq('selectedProfile', id)
+    .maybeSingle();
+  if (!serverSession) {
+    return new Response('null', { headers: { 'Content-Type': 'application/json' } });
+  }
+  return new Response(JSON.stringify({
+    id,
+    name: serverSession.username,
+    properties: []
+  }), { headers: { 'Content-Type': 'application/json' } });
+}
+
 export default {
   async fetch(request) {
     const url = new URL(request.url);
@@ -117,9 +194,22 @@ export default {
     if (request.method === 'POST' && url.pathname === '/refresh') {
       return refresh(request);
     }
+    if (request.method === 'POST' && url.pathname === '/session/minecraft/join') {
+      return joinServer(request);
+    }
+    if (request.method === 'GET' && url.pathname === '/session/minecraft/hasJoined') {
+      return hasJoined(url);
+    }
+    if (request.method === 'GET' && url.pathname.startsWith('/session/minecraft/profile/')) {
+      const profileId = url.pathname.split('/').pop();
+      return profile(profileId);
+    }
     if (request.method === 'GET' && url.pathname.startsWith('/texture/')) {
       const hash = url.pathname.split('/').pop();
       return texture(hash);
+    }
+    if (request.method === 'GET' && url.pathname === '/') {
+      return home();
     }
     return new Response('Not Found', { status: 404 });
   }
