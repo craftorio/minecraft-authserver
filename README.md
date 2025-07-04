@@ -31,13 +31,14 @@ Each file under `cloudflare-worker/routes/` exports a small Hono app. The main w
 1. Install the Supabase CLI.
 2. Run `supabase init` to create the local configuration (the provided `supabase/config.toml` will be used).
 3. Copy `.env.example` to `.env`.
-4. Start the Supabase stack and worker:
+4. Ensure the `volumes/` directory from this repo is present.
+5. Start the Supabase stack and worker:
 
 ```bash
 docker compose up --build
 ```
 
-5. Apply the initial database schema after the containers are running:
+6. Apply the initial database schema after the containers are running:
 
 ```bash
 supabase db reset
