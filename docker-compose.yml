@@ -1,9 +1,8 @@
-version: '3.8'
 services:
   worker:
     build: .
     environment:
-      SUPABASE_URL: http://supabase:54321
+      SUPABASE_URL: http://supabase:8000
       SUPABASE_KEY: supabase_key
       TEXTURE_PRIVATE_KEY: |
         -----BEGIN PRIVATE KEY-----
@@ -13,9 +12,46 @@ services:
       - "8787:8787"
     depends_on:
       - supabase
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
   supabase:
-    image: supabase/postgres:15
+    image: supabase/supabase-dev:latest
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_NAME: postgres
+      DB_USER: postgres
+      DB_PASSWORD: supabase
+      DB_PORT: 5432
+      DB_SCHEMA: public
+    ports:
+      - "54321:8000"
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+  db:
+    image: postgres:15
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
     environment:
       POSTGRES_PASSWORD: supabase
-    ports:
-      - "54321:5432"
+    volumes:
+      - supabase-db:/var/lib/postgresql/data
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+volumes:
+  supabase-db:

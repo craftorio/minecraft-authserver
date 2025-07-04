@@ -29,10 +29,10 @@ wrangler dev dist/worker.js
 Ensure the required environment variables are provided via `wrangler.toml` or your shell.
 
 ## Supabase setup
-Run `supabase init` to create a local project, then apply the migration from `supabase/migrations/0001_initial.sql` to create the tables and storage bucket. The example configuration in `supabase/config.toml` sets local ports and a placeholder JWT secret.
+Run `supabase init` to create a local project and apply the migration from `supabase/migrations/0001_initial.sql` to create the tables and storage bucket. The example configuration in `supabase/config.toml` sets local ports and a placeholder JWT secret.
 
 ## Docker
-A `Dockerfile` and `docker-compose.yml` are provided for convenience. The compose stack starts a Supabase instance and runs the worker using Wrangler.
+A `Dockerfile` and `docker-compose.yml` are provided for convenience. The compose stack runs the worker alongside a local Supabase instance based on the `supabase/supabase-dev` image. The database itself is not exposed outside the stack. The worker accesses Supabase at `http://supabase:8000`.
 
 ```bash
 docker compose up --build
