@@ -99,10 +99,15 @@ export async function hasJoined(serverId, username) {
   if (!serverSession) {
     return null;
   }
+  const props = await buildProperties(
+    serverSession.username,
+    serverSession.selectedProfile,
+    serverSession.username
+  );
   return {
     id: serverSession.selectedProfile,
     name: serverSession.username,
-    properties: []
+    properties: props
   };
 }
 
@@ -115,10 +120,15 @@ export async function getProfile(id) {
   if (!serverSession) {
     return null;
   }
+  const props = await buildProperties(
+    serverSession.username,
+    id,
+    serverSession.username
+  );
   return {
     id,
     name: serverSession.username,
-    properties: []
+    properties: props
   };
 }
 
@@ -131,4 +141,33 @@ export async function getTexture(hash) {
     return null;
   }
   return data;
+}
+
+async function buildProperties(username, profileId, profileName) {
+  const encoder = new TextEncoder();
+  const digest = await crypto.subtle.digest(
+    'SHA-256',
+    encoder.encode(username)
+  );
+  const hash = Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+  const textures = {
+    timestamp: Date.now(),
+    profileId,
+    profileName,
+    textures: {
+      SKIN: {
+        url: `https://textures.minecraft.net/texture/${hash}`
+      }
+    }
+  };
+  const value = btoa(JSON.stringify(textures));
+  return [
+    {
+      name: 'textures',
+      value,
+      signature: ''
+    }
+  ];
 }
