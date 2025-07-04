@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2021",
+    "lib": [
+      "ES2021"
+    ],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "outDir": "dist",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "rootDir": "cloudflare-worker"
+  },
+  "include": [
+    "cloudflare-worker/**/*.ts",
+    "global.d.ts"
+  ]
+}

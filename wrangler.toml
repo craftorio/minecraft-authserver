@@ -1,0 +1,12 @@
+name = "minecraft-authserver"
+main = "dist/worker.js"
+compatibility_date = "2024-05-01"
+
+[build]
+command = "npm run build"
+
+[vars]
+# Set these via environment variables or `.env` when running wrangler
+# SUPABASE_URL = "https://your.supabase.url"
+# SUPABASE_KEY = "your-service-key"
+# TEXTURE_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----..."

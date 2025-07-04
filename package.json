@@ -1,0 +1,19 @@
+{
+  "name": "minecraft-authserver",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "check": "node --check dist/worker.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.2",
+    "bcryptjs": "^3.0.2",
+    "hono": "^3.8.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
