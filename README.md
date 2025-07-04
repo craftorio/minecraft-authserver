@@ -9,6 +9,10 @@ This repository contains a JavaScript implementation of a Minecraft authenticati
 - `SUPABASE_KEY` – service or anon key used to access Supabase
 - `TEXTURE_PRIVATE_KEY` – PEM private key used to sign skin properties
 
+A `.env.example` file is included with defaults from Supabase's official
+self-hosting stack. Copy it to `.env` when running `docker compose` to
+provide all required environment variables.
+
 ## Routes
 Each file under `cloudflare-worker/routes/` exports a small Hono app. The main worker loads these modules automatically with `import.meta.glob` and mounts them at the root.
 
