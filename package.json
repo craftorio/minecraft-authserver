@@ -9,8 +9,9 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "hono": "^3.8.0",
-    "@supabase/supabase-js": "^2.39.2"
+    "@supabase/supabase-js": "^2.39.2",
+    "bcryptjs": "^3.0.2",
+    "hono": "^3.8.0"
   },
   "engines": {
     "node": ">=20"

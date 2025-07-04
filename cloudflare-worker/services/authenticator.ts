@@ -1,4 +1,4 @@
-import bcrypt from 'https://esm.sh/bcryptjs@2.4.3?bundle';
+import bcrypt from 'bcryptjs';
 import { supabase } from '../lib/supabase.js';
 
 export interface Session {
