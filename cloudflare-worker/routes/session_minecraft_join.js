@@ -1,6 +1,6 @@
 import { joinServer } from '../services/authenticator.js';
 
-export async function actionJoinServer(request) {
+export async function actionSessionMinecraftJoin(request) {
   try {
     const { accessToken, selectedProfile, serverId } = await request.json();
     const success = await joinServer(accessToken, selectedProfile, serverId);

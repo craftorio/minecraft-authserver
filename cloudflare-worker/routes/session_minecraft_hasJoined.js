@@ -1,6 +1,6 @@
 import { hasJoined } from '../services/authenticator.js';
 
-export async function actionHasJoined(url) {
+export async function actionSessionMinecraftHasJoined(url) {
   const serverId = url.searchParams.get('serverId');
   const username = url.searchParams.get('username');
   const data = await hasJoined(serverId, username);

@@ -11,6 +11,9 @@ Supabase is used as the backing database instead of MySQL or SleekDB.
 ## Routes
 The worker implements several routes that map to the original PHP API. Each
 handler is exported from a file in `routes/` and prefixed with `action`.
+Files mirror their route path using underscores. For example the handler for
+`/session/minecraft/join` lives in `session_minecraft_join.js` and exports
+`actionSessionMinecraftJoin`.
 The heavy authentication logic lives in `services/authenticator.js` and is
 shared across the handlers:
 
