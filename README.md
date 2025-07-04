@@ -2,7 +2,9 @@
 
 This repository contains a JavaScript implementation of a Minecraft authentication server designed for the Cloudflare Workers platform. The project uses the [Hono](https://hono.dev) router and stores data in Supabase.
 
-> **Prerequisite**: Wrangler 3 requires Node.js 20 or later. Ensure your local environment or Docker image provides a recent Node version.
+> **Prerequisite**
+> - Node.js 20 or later for building the worker
+> - [Supabase CLI](https://supabase.com/docs/guides/cli) for managing the local database
 
 ## Environment Variables
 - `SUPABASE_URL` – URL of your Supabase project
@@ -10,8 +12,8 @@ This repository contains a JavaScript implementation of a Minecraft authenticati
 - `TEXTURE_PRIVATE_KEY` – PEM private key used to sign skin properties
 
 A `.env.example` file is included with defaults from Supabase's official
-self-hosting stack. Copy it to `.env` when running `docker compose` to
-provide all required environment variables.
+self-hosting stack. Copy it to `.env` before starting Docker so that
+`docker compose` has all required variables.
 
 ## Routes
 Each file under `cloudflare-worker/routes/` exports a small Hono app. The main worker loads these modules automatically with `import.meta.glob` and mounts them at the root.
@@ -24,28 +26,26 @@ Each file under `cloudflare-worker/routes/` exports a small Hono app. The main w
 - `GET /session/minecraft/profile/<id>` – retrieves profile information
 - `GET /texture/<hash>` – retrieves the PNG skin from Supabase storage
 
-## Running locally
-Install dependencies and start the worker with [Wrangler](https://developers.cloudflare.com/workers/wrangler/):
 
-```bash
-npm install
-wrangler dev dist/worker.js
-```
-
-Ensure the required environment variables are provided via `wrangler.toml` or your shell.
-
-## Supabase setup
-Run `supabase init` to create a local project and apply the migration from `supabase/migrations/0001_initial.sql` to create the tables and storage bucket. The example configuration in `supabase/config.toml` sets local ports and a placeholder JWT secret.
-
-## Docker
-A `Dockerfile` and `docker-compose.yml` are provided for convenience. The compose file mirrors the [official Supabase self-hosting stack](https://supabase.com/docs/guides/self-hosting/docker). The worker communicates with Supabase through the `supabase-kong` gateway at `http://supabase-kong:8000`.
+## Local development with Docker
+1. Install the Supabase CLI.
+2. Run `supabase init` to create the local configuration (the provided `supabase/config.toml` will be used).
+3. Copy `.env.example` to `.env`.
+4. Start the Supabase stack and worker:
 
 ```bash
 docker compose up --build
 ```
 
+5. Apply the initial database schema after the containers are running:
+
+```bash
+supabase db reset
+```
+
 ## Production build
-Compile the worker and publish it to Cloudflare:
+Compile the worker and publish it to Cloudflare. Configure `SUPABASE_URL` and
+`SUPABASE_KEY` with your Supabase Cloud project credentials:
 
 ```bash
 npm run build
