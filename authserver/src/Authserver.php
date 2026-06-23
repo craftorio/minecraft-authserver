@@ -18,6 +18,7 @@ class Authserver
      */
     private $routes = [
         Route\Home::class,
+        Route\PublicKeys::class,
         Route\Texture::class,
         Route\Authenticate::class,
         Route\Refresh::class,
