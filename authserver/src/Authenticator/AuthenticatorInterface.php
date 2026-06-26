@@ -44,4 +44,10 @@ interface AuthenticatorInterface
      * @return array
      */
     public function getProfile(string $profileId): array;
+
+    /**
+     * @param string $username
+     * @return array|null id + name for bulk lookup API
+     */
+    public function getProfileByUsername(string $username): ?array;
 }

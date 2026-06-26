@@ -12,6 +12,7 @@ use Craftorio\Authserver\Hash\HashInterface;
 use Craftorio\Authserver\Session;
 use Craftorio\Authserver\Skin;
 use Craftorio\Authserver\Account\Storage\StorageInterface;
+use Craftorio\Authserver\ProfileId;
 use stdClass;
 
 /**
@@ -288,22 +289,81 @@ class Authenticator implements AuthenticatorInterface
      */
     public function getProfile(string $profileId): array
     {
-        $sessionData = $this->getSessionStore()->findOneBy([
-            ['profileId', '=', $profileId],
-//            'AND',
-//            ['serverId', '=', $serverId]
-        ]);
+        $normalized = ProfileId::normalize($profileId);
+        $account = $this->findAccountForProfileRef($normalized);
 
-        if (empty($sessionData['accountId'])) {
+        if (!$account) {
             return [];
         }
 
-        $account = $this->accountStorage->findById($sessionData['accountId']);
+        return [
+            'id' => $normalized,
+            'name' => $account->getUsername(),
+            'properties' => $this->getProperties($account),
+        ];
+    }
+
+    /**
+     * Resolve account by profile id, uuid, or OfflinePlayer-derived id.
+     */
+    private function findAccountForProfileRef(string $normalizedRef): ?AccountInterface
+    {
+        $sessionData = $this->getSessionStore()->findOneBy(['profileId', '=', $normalizedRef]);
+        if (!empty($sessionData['accountId'])) {
+            $account = $this->accountStorage->findById($sessionData['accountId']);
+            if ($account) {
+                return $account;
+            }
+        }
+
+        foreach ($this->getSessionStore()->findAll() as $session) {
+            if (empty($session['accountId'])) {
+                continue;
+            }
+            $account = $this->accountStorage->findById($session['accountId']);
+            if ($account && $this->profileRefMatches($normalizedRef, $account)) {
+                return $account;
+            }
+        }
+
+        return null;
+    }
+
+    private function profileRefMatches(string $normalizedRef, AccountInterface $account): bool
+    {
+        $profile = $account->getSelectedProfile();
+
+        if ($normalizedRef === ProfileId::normalize($profile->getId())) {
+            return true;
+        }
+        if ($normalizedRef === ProfileId::normalize($profile->getUuid())) {
+            return true;
+        }
+        if ($account->getUuid() && $normalizedRef === ProfileId::normalize($account->getUuid())) {
+            return true;
+        }
+        if ($normalizedRef === ProfileId::offlineUsername($account->getUsername())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $username
+     * @return array|null
+     */
+    public function getProfileByUsername(string $username): ?array
+    {
+        $account = $this->accountStorage->findByUsername($username);
+        if (!$account) {
+            return null;
+        }
+        $profile = $account->getSelectedProfile();
 
         return [
-            'id' => $profileId,
-            'name' => $account->getUsername(),
-            'properties' => $this->getProperties($account)
+            'id' => ProfileId::normalize($profile->getId()),
+            'name' => $profile->getName(),
         ];
     }
 

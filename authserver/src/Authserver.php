@@ -25,6 +25,7 @@ class Authserver
         Route\SessionMinecraftJoin::class,
         Route\SessionMinecraftHasJoined::class,
         Route\SessionMinecraftProfile::class,
+        Route\ProfileLookupBulkByName::class,
     ];
 
     /** @var \DI\Container */

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Craftorio\Authserver\Route;
 
 use Craftorio\Authserver\Authenticator\AuthenticatorInterface;
+use Craftorio\Authserver\ProfileApiLog;
 use stdClass;
 
 /**
@@ -31,7 +32,19 @@ class SessionMinecraftProfile implements RouteInterface
 
     public function __invoke(...$args)
     {
-        $profile = $this->authenticator->getProfile($args[0]);
+        $profileId = $args[0] ?? '';
+        ProfileApiLog::write('session/minecraft/profile', [
+            'profile_id' => $profileId,
+            'note' => 'GET profile textures',
+        ]);
+
+        $profile = $this->authenticator->getProfile($profileId);
+
+        ProfileApiLog::write('session/minecraft/profile', [
+            'profile_id' => $profileId,
+            'found' => !empty($profile),
+            'name' => $profile['name'] ?? null,
+        ]);
 
         \Flight::json($profile ? $profile : null);
     }
