@@ -44,7 +44,8 @@ class GenerateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        // Generate the key
+        // 1024-bit RSA + SHA-1 matches legacy Mojang Yggdrasil client expectations.
+        // Used by Authenticator::getPropertiesTextures() for sha1WithRSAEncryption signing.
         $key = openssl_pkey_new([
             "digest_alg" => 'sha1',
             "private_key_bits" => 1024,
@@ -73,14 +74,14 @@ class GenerateCommand extends Command
         $details = openssl_pkey_get_details($key);
         file_put_contents($exportDir . DIRECTORY_SEPARATOR . 'yggdrasil_session_public.pem', $details['key']);
 
-        // Generate public der key
+        // Strip PEM headers/footers — clients expect raw base64-encoded DER, not PEM text.
         $lines = explode("\n", $details['key']);
         array_shift($lines);
         array_pop($lines);
         array_pop($lines);
         $der = base64_decode(implode('', $lines));
 
-        // Create the jar file
+        // Java clients load yggdrasil_session_pubkey.der from this jar as a trust anchor.
         $zipFile = new \PhpZip\ZipFile();
         $zipFile
             ->addFromString('yggdrasil_session_pubkey.der', $der)

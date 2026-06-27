@@ -9,7 +9,9 @@ use Craftorio\Authserver\Entity\AccountInterface;
 use Craftorio\Authserver\Config;
 
 /**
- * Interface StorageInterface
+ * Hybrid account storage: MySQL holds credentials (legacy launcher DB),
+ * SleekDB holds authserver metadata (internal _id, uuid, external_id link).
+ *
  * @package Craftorio\Authserver\AccountStorage
  */
 class Mysql extends StorageAbstract
@@ -122,6 +124,7 @@ class Mysql extends StorageAbstract
 
             $account->setExternalId($externalId);
 
+            // Mirror into SleekDB so sessions reference authserver-internal ids.
             $this->sleekDb->insert($account);
         });
     }
@@ -186,6 +189,7 @@ class Mysql extends StorageAbstract
 
         $account = $this->sleekDb->findByExternalId($row['external_id']);
         if (!$account) {
+            // Lazy backfill: MySQL row exists but SleekDB mirror was never created.
             $account = $this->createAccountFromExternal($row);
         }
 
@@ -203,6 +207,7 @@ class Mysql extends StorageAbstract
      */
     public function findByEmail(string $email): ?AccountInterface
     {
+        // NOTE: queries columnId, not columnEmail — matches legacy schema where email lookup uses id column.
         $row = $this->table
             ->select($this->selectFields)
             ->where($this->columnId, $email)

@@ -30,6 +30,7 @@ class Account implements AccountInterface
     public function __construct(array $rawData = [])
     {
         $this->id = ((string) ($rawData['_id'] ?? $rawData['id'] ?? null)) ?? null;
+        // Stable account uuid: derive from internal id when present, else random v4.
         $this->uuid = (string) ($rawData['uuid'] ?? ($this->id ? Uuid::fromString(md5($this->id)) : Uuid::uuid4()));
         $this->username = $rawData['username'] ?? null;
         $this->email = $rawData['email'] ?? null;
@@ -41,6 +42,8 @@ class Account implements AccountInterface
             throw new \RuntimeException('Following fields are required: email, username, password_hash');
         }
 
+        // Single-profile model: profile uuid = md5(account uuid), name = username (Mojang-style).
+        // Stored profile data from DB is not used — see commented selected_profile branch below.
         // if (!empty($rawData['selected_profile'])) {
         //     $this->selectedProfile = !empty($rawData['selected_profile']) ? new Profile($rawData['selected_profile']) : null;
         // } else {
@@ -114,6 +117,9 @@ class Account implements AccountInterface
 
     /**
      * @return ProfileInterface[]
+     */
+    /**
+     * Yggdrasil returns a one-element availableProfiles array for this authserver.
      */
     public function getProfiles(): array
     {

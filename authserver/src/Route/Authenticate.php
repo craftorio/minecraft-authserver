@@ -45,6 +45,7 @@ class Authenticate implements RouteInterface
         $clientToken = $payload['clientToken']  ?? null;
 
         if (!$username || !$password || !$clientToken) {
+            // Flight sends HTTP 400 via response()->status; JSON body uses 403 per Yggdrasil error shape.
             \Flight::response()->status(400)->send();
             \Flight::json([
                 "error" => "InvalidRequestException", // Package ca.uhn.fhir.rest.server.exceptions
@@ -80,6 +81,9 @@ class Authenticate implements RouteInterface
     /**
      * @param string $username
      * @return AccountInterface|null
+     */
+    /**
+     * Login field accepts username or email — Yggdrasil clients may send either in "username".
      */
     private function loadAccount(string $username): ?AccountInterface
     {

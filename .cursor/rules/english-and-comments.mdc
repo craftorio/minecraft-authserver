@@ -1,0 +1,20 @@
+---
+description: English-only project text and detailed comments on non-obvious logic
+alwaysApply: true
+---
+
+# English only (strict)
+
+All project text must be in English: documentation, code comments, commit messages, PR descriptions, and user-facing strings added by agents.
+
+# Code comments
+
+Add detailed English comments for non-obvious logic:
+
+- Yggdrasil/Mojang protocol compatibility
+- UUID/id derivation and hashing
+- hybrid storage and lazy migration
+- session validation and texture signing
+- intentional spec deviations
+
+Do not comment trivial or self-explanatory code.

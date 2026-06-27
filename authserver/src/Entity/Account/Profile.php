@@ -24,6 +24,7 @@ class Profile implements ProfileInterface
     {
         $this->uuid = (string) $rawData['uuid'] ?? Uuid::uuid4();
         $this->name = (string) $rawData['name'] ?? 'Unnamed';
+        // Mojang profile id: md5 of profile uuid (hex, no dashes) — see ProfileId::normalize().
         $this->id = md5($this->uuid);
     }
 

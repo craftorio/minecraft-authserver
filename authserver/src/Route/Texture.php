@@ -26,6 +26,7 @@ class Texture implements RouteInterface
 
     public function __invoke(...$args)
     {
+        // hash maps to a SleekDB skin index row; path points at local PNG (not Mojang CDN).
         $skin = $this->skin->getStore()->findOneBy(['hash', '=', $args[0]]) ?? [];
 
         if (!empty($skin['path']) && is_readable($skin['path'])) {    

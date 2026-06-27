@@ -61,6 +61,7 @@ class Refresh implements RouteInterface
             return;
         }
 
+        // Both tokens must match the same session row — prevents refresh with a stolen accessToken alone.
         $session = $this->session->getSessionStore()->findOneBy([
             ['accessToken', '=', $accessToken],
             'AND',

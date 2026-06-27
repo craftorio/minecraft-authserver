@@ -26,6 +26,7 @@ class ProfileLookupBulkByName implements RouteInterface
 
     public function __invoke(...$args)
     {
+        // Mojang 1.20+ sends a raw JSON string array in the body, not Flight-parsed form data.
         $raw = ProfileApiLog::rawBody();
         ProfileApiLog::write('profile/lookup/bulk/byname', [
             'raw_body' => $raw,
@@ -39,6 +40,7 @@ class ProfileLookupBulkByName implements RouteInterface
             return;
         }
 
+        // Unknown names are omitted — partial array response matches Mojang bulk lookup behavior.
         $out = [];
         foreach ($names as $name) {
             if (!is_string($name)) {

@@ -48,6 +48,10 @@ class Phpass implements HashInterface
      * @return string
      * @throws \Exception
      */
+    /**
+     * Stored format: "{phpass_hash}:{salt}".
+     * Salt is prepended to password before phpass hashing (not appended after hash).
+     */
     public function hashPassword(string $password): string
     {
         $salt = $this->getRandomString();

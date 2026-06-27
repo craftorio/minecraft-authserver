@@ -35,6 +35,7 @@ class PublicKeys implements RouteInterface
         array_pop($lines);
         $base64Der = implode('', $lines);
 
+        // Mojang 1.20+ exposes the same key in both arrays for profile properties and player certificates.
         $key = ['publicKey' => $base64Der];
 
         \Flight::json([

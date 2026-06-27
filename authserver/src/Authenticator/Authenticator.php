@@ -114,11 +114,13 @@ class Authenticator implements AuthenticatorInterface
      */
     public function refreshSession(AccountInterface $account, string $clientToken): ?array
     {
+        // One account may have multiple SleekDB session rows (re-login, refresh).
+        // current() picks the first row — order is undefined; its accessToken is reused when present.
         $sessions = $this->getSessionStore()->findBy(['accountUuid', '=', $account->getUuid()]);
         $currentSession = current($sessions);
         $accessToken = $currentSession['accessToken'] ?? $this->generateAccessToken();
 
-        // Delete outdated sessions
+        // Collapse to a single active session per account (Yggdrasil expects one clientToken pair).
         if (count($sessions) > 1) {
             foreach ($sessions as $session) {
                 if ($currentSession['_id'] != $session['_id']) {
@@ -178,6 +180,10 @@ class Authenticator implements AuthenticatorInterface
     /**
      * @return string
      */
+    /**
+     * 64-char hex token matching Mojang accessToken shape.
+     * Uses rand() (not random_int) for historical compatibility with existing clients.
+     */
     private function generateAccessToken(): string
     {
         $chars    = "0123456789abcdef";
@@ -201,6 +207,7 @@ class Authenticator implements AuthenticatorInterface
             "availableProfiles" => $account->getProfiles(),
             "selectedProfile" => $account->getSelectedProfile(),
             "user" => [
+                // Mojang legacy: user.id is md5(uuid), not the raw uuid string.
                 "id" => md5($account->getUuid() ?? $account->getId()),
                 "username" => $account->getUsername(),
             ]
@@ -230,6 +237,8 @@ class Authenticator implements AuthenticatorInterface
             throw new UnauthorizedException();
         }
 
+        // serverId is stored but not used for lookup — one join row per account uuid.
+        // serverId filter is intentionally disabled (see hasJoinedServer).
         $serverSessionData = $this->getServerSessionStore()->findOneBy([
             ['accountUuid', '=', $account->getUuid()],
 //            'AND',
@@ -246,6 +255,7 @@ class Authenticator implements AuthenticatorInterface
         if (empty($serverSessionData['_id'])) {
             $this->getServerSessionStore()->insert($serverSessionData);
         } else {
+            // Full-document update (includes _id) rather than updateById.
             $this->getServerSessionStore()->update($serverSessionData);
         }
     }
@@ -261,6 +271,7 @@ class Authenticator implements AuthenticatorInterface
      */
     public function hasJoinedServer(string $serverId, string $username)
     {
+        // $serverId is accepted for Yggdrasil API compatibility but not validated here.
         $serverSessionData = $this->getServerSessionStore()->findOneBy([
             ['username', '=', $username],
 //            'AND',
@@ -276,6 +287,7 @@ class Authenticator implements AuthenticatorInterface
             throw new UnauthorizedException();
         }
 
+        // Profile id comes from the account's selected profile, not from join payload selectedProfile.
         return [
             'id' => $account->getSelectedProfile()->getId(),
             'name' => $account->getUsername(),
@@ -305,9 +317,13 @@ class Authenticator implements AuthenticatorInterface
 
     /**
      * Resolve account by profile id, uuid, or OfflinePlayer-derived id.
+     *
+     * Clients may send profile refs in several formats; profileRefMatches() accepts:
+     * md5(profile uuid), raw profile uuid, account uuid, or OfflinePlayer:{username} hash.
      */
     private function findAccountForProfileRef(string $normalizedRef): ?AccountInterface
     {
+        // Fast path: indexed lookup on profileId stored at login.
         $sessionData = $this->getSessionStore()->findOneBy(['profileId', '=', $normalizedRef]);
         if (!empty($sessionData['accountId'])) {
             $account = $this->accountStorage->findById($sessionData['accountId']);
@@ -316,6 +332,7 @@ class Authenticator implements AuthenticatorInterface
             }
         }
 
+        // Fallback: scan all sessions when ref format does not match stored profileId.
         foreach ($this->getSessionStore()->findAll() as $session) {
             if (empty($session['accountId'])) {
                 continue;
@@ -398,6 +415,8 @@ class Authenticator implements AuthenticatorInterface
             throw new \Exception("Can't read pem file");
         }
 
+        // Sign base64-encoded textures blob — same algorithm/key as Mojang Yggdrasil (sha1WithRSA).
+        // Private key is produced by certificates:generate (1024-bit RSA, sha1 digest).
         $key = openssl_pkey_get_private("file://{$pemFile}");
         openssl_sign($textures, $signature, $key, 'sha1WithRSAEncryption');
 
@@ -418,6 +437,7 @@ class Authenticator implements AuthenticatorInterface
     public function getTextures(AccountInterface $account): string
     {
         $textures = [];
+        // Skin file is resolved from disk each call; SleekDB row is rewritten as a texture index.
         //$skin = $this->getSkinStore()->findOneBy(['profile_uuid', '=', $account->getSelectedProfile()->getUuid()]) ?? [];
         $skin['id'] = $account->getId();
         $skin['username'] = $account->getUsername();
@@ -425,6 +445,7 @@ class Authenticator implements AuthenticatorInterface
         $skin['profile_id'] = $account->getSelectedProfile()->getId();
         $skin['timestamp'] = time() * 1000;
 
+        // First file in skinDir/{lowercase username}/ wins (directory order from scandir).
         $basePath = $this->config->get('skinDir') . DIRECTORY_SEPARATOR . strtolower($account->getUsername());
         $path = '';
         if (is_dir($basePath)) {
@@ -435,13 +456,15 @@ class Authenticator implements AuthenticatorInterface
                 }
             }
         }
-        
+
+        // Hash is sha256 of the filesystem path string, not file bytes — used as /texture/@hash key.
         $skin['hash'] = hash('sha256', $path);
         $skin['path'] = $path;
         $skinEntity = new Entity\Skin($skin);
         $this->getSkinStore()->deleteBy(['id', '=', $account->getId()]);
         $this->getSkinStore()->insert($skinEntity->jsonSerialize());
         
+        // URL mimics Mojang CDN shape; actual bytes are served locally via GET /texture/@hash.
         $textures = [
             'SKIN' => [
                 'url' => "https://textures.minecraft.net/texture/{$skin['hash']}",
@@ -453,6 +476,7 @@ class Authenticator implements AuthenticatorInterface
                 'timestamp' => $skin['timestamp'],
                 'profileId' => $account->getSelectedProfile()->getId(),
                 'profileName' => $account->getSelectedProfile()->getName(),
+                // Empty textures when no skin file — client falls back to default steve/alex.
                 'textures' => $path ? $textures : [],
             ], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE)
         );

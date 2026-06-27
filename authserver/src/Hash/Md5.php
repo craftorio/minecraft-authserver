@@ -7,7 +7,8 @@ namespace Craftorio\Authserver\Hash;
 use Craftorio\Authserver\Entity\AccountInterface;
 
 /**
- * Class Phpass
+ * Legacy MD5 passwords — no salt. Enable via account.hash_algorithm = md5 for old DB compatibility only.
+ *
  * @package Craftorio\Authserver\Hash
  */
 class Md5 implements HashInterface

@@ -9,16 +9,27 @@ namespace Craftorio\Authserver;
  */
 class ProfileId
 {
+    /**
+     * Strip dashes and lowercase — clients send profile ids in mixed formats.
+     */
     public static function normalize(string $id): string
     {
         return strtolower(str_replace('-', '', $id));
     }
 
+    /**
+     * Offline-mode profile id: UUID v3-style hash of "OfflinePlayer:{username}".
+     * Matches vanilla Minecraft offline UUID derivation.
+     */
     public static function offlineUsername(string $username): string
     {
         return self::normalize(self::uuidFromString('OfflinePlayer:' . $username));
     }
 
+    /**
+     * Build RFC-4122 UUID from arbitrary string (MD5-based, version 3 layout).
+     * Endianness swap on little-endian hosts matches Java UUID.nameUUIDFromBytes().
+     */
     private static function uuidFromString(string $string): string
     {
         $val = md5($string, true);
@@ -30,12 +41,14 @@ class ProfileId
         $csLo = $byte[9];
         $csHi = $byte[8] & 0x3f | (1 << 7);
 
+        // Detect little-endian PHP and swap 32/16-bit word byte order to match Java.
         if (pack('L', 0x6162797A) == pack('N', 0x6162797A)) {
             $tLo = (($tLo & 0x000000ff) << 24) | (($tLo & 0x0000ff00) << 8) | (($tLo & 0x00ff0000) >> 8) | (($tLo & 0xff000000) >> 24);
             $tMi = (($tMi & 0x00ff) << 8) | (($tMi & 0xff00) >> 8);
             $tHi = (($tHi & 0x00ff) << 8) | (($tHi & 0xff00) >> 8);
         }
 
+        // Force UUID version 3 (name-based MD5) and RFC variant bits.
         $tHi &= 0x0fff;
         $tHi |= (3 << 12);
 
