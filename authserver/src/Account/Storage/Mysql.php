@@ -236,8 +236,16 @@ class Mysql extends StorageAbstract
     private function createAccountFromExternal(array $row): AccountInterface
     {
         $account = new Account($row);
+
+        // Drop stale mirror rows from a previously deleted account with the same
+        // username/email. A user deleted directly in MySQL (launcher/website) leaves
+        // its SleekDB mirror behind; without this cleanup SleekDb::insert() would
+        // throw "already taken" and authentication would fail after re-registration.
+        $this->sleekDb->deleteByIdentity($account->getUsername(), $account->getEmail());
         $this->sleekDb->insert($account);
 
-        return $account;
+        // Reload so the caller receives the persisted internal _id/uuid instead of the
+        // random uuid generated for a row that had no _id yet.
+        return $this->sleekDb->findByExternalId($account->getExternalId()) ?? $account;
     }
 }

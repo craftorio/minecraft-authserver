@@ -80,6 +80,28 @@ class SleekDb extends StorageAbstract
     }
 
     /**
+     * Remove any mirror rows matching the given username or email.
+     *
+     * Used to purge stale mirrors left when an account was deleted directly in
+     * MySQL (not via account:delete): the username/email key would otherwise make
+     * insert() throw "already taken" when the same name is registered again.
+     *
+     * @param string $username
+     * @param string $email
+     * @throws \SleekDB\Exceptions\IOException
+     * @throws \SleekDB\Exceptions\InvalidArgumentException
+     */
+    public function deleteByIdentity(string $username, string $email): void
+    {
+        foreach ($this->accountsStore->findBy(["username", "=", $username]) as $row) {
+            $this->accountsStore->deleteById($row["_id"]);
+        }
+        foreach ($this->accountsStore->findBy(["email", "=", $email]) as $row) {
+            $this->accountsStore->deleteById($row["_id"]);
+        }
+    }
+
+    /**
      * @param string $id
      * @return AccountInterface|null
      * @throws \SleekDB\Exceptions\InvalidArgumentException
