@@ -7,6 +7,7 @@ namespace Craftorio\Authserver\Route;
 use Craftorio\Authserver\Authenticator\Authenticator;
 use Craftorio\Authserver\Authenticator\AuthenticatorInterface;
 use Craftorio\Authserver\Authenticator\Exception\UnauthorizedException;
+use Craftorio\Authserver\ProfileApiLog;
 
 /**
  * Interface RouteInterface
@@ -41,11 +42,23 @@ class SessionMinecraftHasJoined implements RouteInterface
      */
     public function __invoke(...$args)
     {
-        try {
-            $serverId = \Flight::request()->query['serverId'];
-            $username = \Flight::request()->query['username'];
+        $serverId = \Flight::request()->query['serverId'] ?? null;
+        $username = \Flight::request()->query['username'] ?? null;
 
+        ProfileApiLog::write('session/minecraft/hasJoined', [
+            'serverId' => $serverId,
+            'username' => $username,
+            'note' => 'hasJoined request',
+        ]);
+
+        try {
             if (!$serverId || !$username) {
+                ProfileApiLog::write('session/minecraft/hasJoined', [
+                    'serverId' => $serverId,
+                    'username' => $username,
+                    'status' => 401,
+                    'reason' => 'missing_serverId_or_username',
+                ]);
                 \Flight::response()->status(401)->send();
 
                 return;
@@ -53,12 +66,37 @@ class SessionMinecraftHasJoined implements RouteInterface
 
             $sessionInfo = $this->authenticator->hasJoinedServer($serverId, $username);
 
+            ProfileApiLog::write('session/minecraft/hasJoined', [
+                'serverId' => $serverId,
+                'username' => $username,
+                'status' => 200,
+                'profile_id' => $sessionInfo['id'] ?? null,
+                'profile_name' => $sessionInfo['name'] ?? null,
+            ]);
+
             \Flight::json($sessionInfo);
         } catch (UnauthorizedException $e) {
+            ProfileApiLog::write('session/minecraft/hasJoined', [
+                'serverId' => $serverId,
+                'username' => $username,
+                'status' => 401,
+                'reason' => 'unauthorized',
+                'exception' => get_class($e),
+                'message' => $e->getMessage(),
+            ]);
             \Flight::response()->status(401)->send();
 
             return;
         } catch (\Throwable $e) {
+            ProfileApiLog::write('session/minecraft/hasJoined', [
+                'serverId' => $serverId,
+                'username' => $username,
+                'status' => 500,
+                'exception' => get_class($e),
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
             \Flight::response()->status(500)->send();
 
             return;
