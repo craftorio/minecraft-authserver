@@ -282,7 +282,9 @@ class Authenticator implements AuthenticatorInterface
             throw new UnauthorizedException();
         }
 
-        $account = $this->accountStorage->findById($serverSessionData['accountId']);
+        // Resolve by username so a stale accountId in the join row still works after
+        // SleekDB mirror cleanup (same hybrid-storage edge case as findByUsername backfill).
+        $account = $this->accountStorage->findByUsername($username);
         if (!$account) {
             throw new UnauthorizedException();
         }

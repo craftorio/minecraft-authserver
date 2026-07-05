@@ -154,6 +154,10 @@ class Mysql extends StorageAbstract
     public function findById(string $id): ?AccountInterface
     {
         $account = $this->sleekDb->findById($id);
+        if (!$account) {
+            // Stale internal id (e.g. SleekDB mirror removed after MySQL re-register).
+            return null;
+        }
 
         $row = $this->table
             ->select($this->selectFields)
