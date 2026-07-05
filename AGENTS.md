@@ -64,7 +64,8 @@ Do not comment obvious code (getters, simple CRUD). Match existing comment style
 
 ### Tests
 
-- Do not add tests unless requested or they provide meaningful coverage.
+- PHPUnit tests live in `authserver/tests/` (Unit + Integration).
+- Run via `docker compose exec cli vendor/bin/phpunit`.
 
 ## Project context
 

@@ -17,9 +17,17 @@
         "clancats/hydrahon": "^1.1"
     },
     "license": "MIT",
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
     "autoload": {
         "psr-4": {
             "Craftorio\\Authserver\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Craftorio\\Authserver\\Tests\\": "tests/"
         }
     },
     "authors": [

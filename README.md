@@ -22,6 +22,7 @@ Minecraft-compatible authentication and session server (Yggdrasil-style API). Us
 ## Quick start (Docker)
 
 ```bash
+docker compose build
 docker compose up -d
 ```
 
@@ -128,6 +129,21 @@ Example:
 
 ```bash
 docker compose exec cli php bin/console account:create Steve steve@example.com secret
+```
+
+## Tests
+
+Run PHPUnit inside the `cli` container (PHP 8.4):
+
+```bash
+docker compose exec cli vendor/bin/phpunit
+```
+
+Run a single suite:
+
+```bash
+docker compose exec cli vendor/bin/phpunit --testsuite Unit
+docker compose exec cli vendor/bin/phpunit --testsuite Integration
 ```
 
 ## Project layout

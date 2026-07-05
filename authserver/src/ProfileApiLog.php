@@ -39,6 +39,13 @@ class ProfileApiLog
 
     public static function rawBody(): string
     {
+        if (class_exists(\Flight::class, false)) {
+            $body = \Flight::request()->body ?? '';
+            if ($body !== '') {
+                return $body;
+            }
+        }
+
         return file_get_contents('php://input') ?: '';
     }
 }
