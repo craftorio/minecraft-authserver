@@ -14,7 +14,7 @@ Minecraft-compatible authentication and session server (Yggdrasil-style API). Us
 
 ## Stack
 
-- PHP 7.3, Flight micro-framework
+- PHP 8.4, Flight micro-framework
 - Symfony Console (CLI)
 - PHP-DI, nginx + php-fpm (Docker)
 - MailHog for dev email capture

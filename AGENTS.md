@@ -68,7 +68,7 @@ Do not comment obvious code (getters, simple CRUD). Match existing comment style
 
 ## Project context
 
-- **Language:** PHP 7.3
+- **Language:** PHP 8.4
 - **Namespace:** `Craftorio\Authserver\`
 - **Web:** Flight micro-framework, entrypoint `authserver/public/index.php`
 - **CLI:** Symfony Console, entrypoint `authserver/bin/console`

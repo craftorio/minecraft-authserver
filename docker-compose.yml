@@ -2,7 +2,10 @@ version: '3.4'
 
 services:
     cli:
-        image: 'digitalspacestudio/php:7.3'
+        build:
+            context: ./docker/php
+            dockerfile: Dockerfile
+        image: craftorio/authserver-php:8.4
         deploy:
             restart_policy:
                 condition: any
@@ -10,9 +13,9 @@ services:
             - 'authserver-composer-home:/tmp/.composer'
             - './authserver:/var/www/authserver'
             - '/var/www/launcher/MinecraftSkins:/var/www/authserver/var/skins'
-            - './docker/php/php.ini:/home/linuxbrew/.linuxbrew/etc/php/7.3/php.ini:ro'
-            - './docker/php/prepend.php:/home/linuxbrew/.linuxbrew/etc/php/7.3/prepend.php:ro'
-            - './docker/php/msmtprc:/home/linuxbrew/.msmtprc:ro'
+            - './docker/php/php.ini:/usr/local/etc/php/conf.d/zz-authserver.ini:ro'
+            - './docker/php/prepend.php:/usr/local/etc/php/prepend.php:ro'
+            - './docker/php/msmtprc:/etc/msmtprc:ro'
         working_dir: '/var/www/authserver'
         command: sh -c 'while true; do sleep 1; done;'
         environment:
@@ -21,7 +24,10 @@ services:
             - 'authserver'
 
     fpm:
-        image: 'digitalspacestudio/php:7.3'
+        build:
+            context: ./docker/php
+            dockerfile: Dockerfile
+        image: craftorio/authserver-php:8.4
         deploy:
             restart_policy:
                 condition: any
@@ -29,11 +35,11 @@ services:
             - 'authserver-composer-home:/tmp/.composer'
             - './authserver:/var/www/authserver'
             - '/var/www/launcher/MinecraftSkins:/var/www/authserver/var/skins'
-            - './docker/php/php-fpm.conf:/home/linuxbrew/.linuxbrew/etc/php/7.3/php-fpm.conf:ro'
-            - './docker/php/php.ini:/home/linuxbrew/.linuxbrew/etc/php/7.3/php.ini:ro'
-            - './docker/php/prepend.php:/home/linuxbrew/.linuxbrew/etc/php/7.3/prepend.php:ro'
+            - './docker/php/php-fpm.conf:/usr/local/etc/php-fpm.d/zz-authserver.conf:ro'
+            - './docker/php/php.ini:/usr/local/etc/php/conf.d/zz-authserver.ini:ro'
+            - './docker/php/prepend.php:/usr/local/etc/php/prepend.php:ro'
             - './docker/php/entrypoint.sh:/entrypoint.sh:ro'
-            - './docker/php/msmtprc:/home/linuxbrew/.msmtprc:ro'
+            - './docker/php/msmtprc:/etc/msmtprc:ro'
         working_dir: '/var/www/authserver'
         command: '/bin/bash /entrypoint.sh'
         environment:
